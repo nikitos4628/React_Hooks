@@ -1,36 +1,37 @@
-import {useRef, useState, useEffect} from 'react';
-import {Container} from 'react-bootstrap';
-import './App.css';
-
-const Form = () => {
-	const [text, setText] = useState('');
-
-    const myRef = useRef(1);
-
-	 useEffect(() => {
-		myRef.current = text;
-		
-	 })
-
-    return (
-        <Container>
-            <form className="w-50 border mt-5 p-3 m-auto">
-                <div className="mb-3">
-                    <label htmlFor="exampleFormControlInput1" className="form-label">Email address</label>
-                    <input onChange={(e) => setText(e.target.value)} type="email" className="form-control" id="exampleFormControlInput1" placeholder="name@example.com"/>
-                    </div>
-                    <div className="mb-3">
-                    <label htmlFor="exampleFormControlTextarea1" className="form-label">Example textarea</label>
-                    <textarea value={myRef.current} className="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-                </div>
-            </form>
-        </Container>
-    )
-}
+import data from './data';
+import {useState, useMemo, useTransition} from 'react';
 
 function App() {
+    const [text, setText] = useState('');
+    const [posts, setPosts] = useState(data);
+	//  const deferredValue = useDeferredValue(text);
+	const [isPending, startTransition] = useTransition();
+
+    const filteredPosts = useMemo(() => {
+        return posts.filter(item => item.name.toLowerCase().includes(text));
+    }, [text]);
+
+    const onValueChange = (e) => {
+		startTransition(() => {
+			setText(e.target.value);
+		})      
+    }
+
     return (
-        <Form/>
+        <>
+            <input value={text} type='text' onChange={onValueChange}/>
+
+            <hr/>
+
+            <div>
+                {isPending ? <h4>Loading...</h4> : 
+					 filteredPosts.map(post => (
+						<div key={post._id}>
+							 <h4>{post.name}</h4>
+						</div>
+				  ))}
+            </div>
+        </>
     );
 }
 
